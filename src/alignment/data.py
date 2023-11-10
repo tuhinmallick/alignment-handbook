@@ -38,7 +38,9 @@ def apply_chat_template(
         if messages[0]["role"] != "system":
             messages.insert(0, {"role": "system", "content": ""})
         example["text"] = tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True if task == "generation" else False
+            messages,
+            tokenize=False,
+            add_generation_prompt=task == "generation",
         )
     elif task == "rm":
         if all(k in example.keys() for k in ("chosen", "rejected")):
@@ -120,8 +122,7 @@ def get_datasets(
     else:
         raise ValueError(f"Data config {data_config} not recognized.")
 
-    raw_datasets = mix_datasets(dataset_mixer, splits=splits, shuffle=shuffle)
-    return raw_datasets
+    return mix_datasets(dataset_mixer, splits=splits, shuffle=shuffle)
 
 
 def mix_datasets(dataset_mixer: dict, splits: Optional[List[str]] = None, shuffle=True) -> DatasetDict:
@@ -163,7 +164,7 @@ def mix_datasets(dataset_mixer: dict, splits: Optional[List[str]] = None, shuffl
     if any(frac < 0 for frac in fracs):
         raise ValueError("Dataset fractions cannot be negative.")
 
-    if len(raw_train_datasets) > 0:
+    if raw_train_datasets:
         train_subsets = []
         for dataset, frac in zip(raw_train_datasets, fracs):
             train_subset = dataset.select(range(int(frac * len(dataset))))
@@ -172,8 +173,7 @@ def mix_datasets(dataset_mixer: dict, splits: Optional[List[str]] = None, shuffl
             raw_datasets["train"] = concatenate_datasets(train_subsets).shuffle(seed=42)
         else:
             raw_datasets["train"] = concatenate_datasets(train_subsets)
-    # No subsampling for test datasets to enable fair comparison across models
-    if len(raw_val_datasets) > 0:
+    if raw_val_datasets:
         if shuffle:
             raw_datasets["test"] = concatenate_datasets(raw_val_datasets).shuffle(seed=42)
         else:

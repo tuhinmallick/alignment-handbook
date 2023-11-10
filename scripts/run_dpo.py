@@ -75,7 +75,7 @@ def main():
     ###############
     raw_datasets = get_datasets(data_args, splits=data_args.dataset_splits)
     logger.info(
-        f"Training on the following splits: {[split + ' : ' + str(dset.num_rows) for split, dset in raw_datasets.items()]}"
+        f"Training on the following splits: {[f'{split} : {str(dset.num_rows)}' for split, dset in raw_datasets.items()]}"
     )
     column_names = list(raw_datasets["train"].features)
 
@@ -110,7 +110,7 @@ def main():
         trust_remote_code=model_args.trust_remote_code,
         use_flash_attention_2=model_args.use_flash_attention_2,
         torch_dtype=torch_dtype,
-        use_cache=False if training_args.gradient_checkpointing else True,
+        use_cache=not training_args.gradient_checkpointing,
         device_map=get_kbit_device_map(),
         quantization_config=get_quantization_config(model_args),
     )
@@ -128,7 +128,7 @@ def main():
             trust_remote_code=model_args.trust_remote_code,
             use_flash_attention_2=model_args.use_flash_attention_2,
             torch_dtype=torch_dtype,
-            use_cache=False if training_args.gradient_checkpointing else True,
+            use_cache=not training_args.gradient_checkpointing,
         )
         base_model = AutoModelForCausalLM.from_pretrained(
             peft_config.base_model_name_or_path,
