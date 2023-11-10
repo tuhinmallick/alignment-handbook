@@ -71,8 +71,10 @@ def main():
 
     # Log on each process a small summary
     logger.warning(
-        f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}"
-        + f" distributed training: {bool(training_args.local_rank != -1)}, 16-bits training: {training_args.fp16}"
+        (
+            f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}"
+            + f" distributed training: {training_args.local_rank != -1}, 16-bits training: {training_args.fp16}"
+        )
     )
     logger.info(f"Model parameters {model_args}")
     logger.info(f"Data parameters {data_args}")
@@ -83,7 +85,7 @@ def main():
     ###############
     raw_datasets = get_datasets(data_args, splits=data_args.dataset_splits)
     logger.info(
-        f"Training on the following datasets and their proportions: {[split + ' : ' + str(dset.num_rows) for split, dset in raw_datasets.items()]}"
+        f"Training on the following datasets and their proportions: {[f'{split} : {str(dset.num_rows)}' for split, dset in raw_datasets.items()]}"
     )
 
     ################
@@ -115,7 +117,7 @@ def main():
         trust_remote_code=model_args.trust_remote_code,
         use_flash_attention_2=model_args.use_flash_attention_2,
         torch_dtype=torch_dtype,
-        use_cache=False if training_args.gradient_checkpointing else True,
+        use_cache=not training_args.gradient_checkpointing,
         device_map=get_kbit_device_map(),
         quantization_config=get_quantization_config(model_args),
     )

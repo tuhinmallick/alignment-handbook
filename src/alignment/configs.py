@@ -69,13 +69,8 @@ class H4ArgumentParser(HfArgumentParser):
                     if base_type == List[str]:
                         inputs[arg] = [str(v) for v in val.split(",")]
 
-                    # bool of a non-empty string is True, so we manually check for bools
                     if base_type == bool:
-                        if val in ["true", "True"]:
-                            inputs[arg] = True
-                        else:
-                            inputs[arg] = False
-
+                        inputs[arg] = val in ["true", "True"]
                     # add to used-args so we can check if double add
                     if arg not in used_args:
                         used_args[arg] = val
